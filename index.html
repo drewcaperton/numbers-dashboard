@@ -136,7 +136,7 @@ footer.page code{font-family:var(--font-mono);background:var(--surface-2);paddin
 </section>
 
 <footer class="page">
-  Built from a one-time pull of the Notion workspace on 2026-09-06, refreshed with each week's numbers since (most recently 2026-09-24). Refresh this page after each week's data lands &mdash; ask Claude to re-pull <code>Sunday Weekly DATA</code> and <code>HG Attendance &ndash; by Person DATA</code> and republish. Life Group involvement is a semester total in Notion, not a weekly count, so it updates once per term rather than every week.
+  Built from a one-time pull of the Notion workspace on 2026-09-06, refreshed with each week's numbers since (most recently 2026-09-28). Refresh this page after each week's data lands &mdash; ask Claude to re-pull <code>Sunday Weekly DATA</code> and <code>HG Attendance &ndash; by Person DATA</code> and republish. Life Group involvement is a semester total in Notion, not a weekly count, so it updates once per term rather than every week.
 </footer>
 </div>
 
@@ -175,7 +175,7 @@ const worship = [
 ["2026-06-07",57],["2026-06-14",58],["2026-06-21",75],["2026-06-28",51],["2026-07-05",60],
 ["2026-07-12",62],["2026-07-19",78],["2026-07-26",79],["2026-08-02",70],["2026-08-09",91],
 ["2026-08-16",72],["2026-08-23",77],["2026-08-30",110],["2026-09-06",68],["2026-09-13",62],
-["2026-09-20",74]
+["2026-09-20",74],["2026-09-27",62]
 ];
 
 const hgRaw = [
@@ -198,7 +198,7 @@ const hgRaw = [
 ["2026-04-19",35],["2026-04-26",20],["2026-05-03",37],["2026-05-10",35],["2026-06-14",12],
 ["2026-07-12",32],["2026-07-19",21],["2026-07-26",21],["2026-08-02",20],["2026-08-09",15],
 ["2026-08-16",15],["2026-08-23",20],["2026-08-30",18],
-["2026-09-13",33],["2026-09-20",12]
+["2026-09-13",34],["2026-09-20",29]
 ];
 
 // MT Freq 1-3 sum (people who served 1, 2, or 3 times in the trailing 5
@@ -221,7 +221,8 @@ const mt = [
 ["2026-05-10",37],["2026-05-17",38],["2026-05-24",37],["2026-05-31",36],["2026-06-07",34],
 ["2026-06-14",37],["2026-06-21",37],["2026-06-28",29],["2026-07-05",29],["2026-07-12",31],
 ["2026-07-19",28],["2026-07-26",30],["2026-08-02",31],["2026-08-09",32],["2026-08-16",36],
-["2026-08-23",38],["2026-08-30",36],["2026-09-06",38],["2026-09-13",37],["2026-09-20",37]
+["2026-08-23",38],["2026-08-30",36],["2026-09-06",38],["2026-09-13",37],["2026-09-20",37],
+["2026-09-27",34]
 ];
 
 const CORE_ADULTS = 49;
@@ -260,7 +261,7 @@ const servingPct = Math.round((latestMT / CORE_ADULTS) * 100);
 // don't resolve over the API. See wiki/projects/this-week-in-numbers-dashboard.md.
 const worshipL10 = worship.slice(-10).map(p => p[1]);
 const worshipL10Avg = Math.round(worshipL10.reduce((a,b) => a+b, 0) / worshipL10.length);
-const givingL10 = [3673.25,2764.32,3489.88,5394.07,2031.7,8698.53,2051.02,4282.82,1071.44,5207.04];
+const givingL10 = [2764.32,3489.88,5394.07,2031.7,8698.53,2051.02,4282.82,1071.44,5207.04,1475.75];
 const givingL10Avg = Math.round(givingL10.reduce((a,b) => a+b, 0) / givingL10.length);
 const hgL10 = hgRaw.filter(p => p[0] >= worship[worship.length-10][0]).map(p => p[1]);
 const hgL10Avg = hgL10.reduce((a,b) => a+b, 0) / hgL10.length;
@@ -269,14 +270,14 @@ const membersYoY = { current: 49, yearAgo: 40 };
 const membersDelta = membersYoY.current - membersYoY.yearAgo;
 const membersPct = Math.round((membersDelta / membersYoY.yearAgo) * 100);
 const gcCompletions = 9;
-const hgNew = 8, lgNew = 4;
+const hgNew = 5, lgNew = 4;
 
 // MT Freq 1-3: people who served 1, 2, or 3 times in the trailing 5
 // Sundays, from Sunday Weekly DATA's MT Freq 1/2/3 fields (summed per
 // week; Notion's own "MT Freq 1-3" formula doesn't resolve over the API,
 // same issue as everywhere else — see wiki/projects/this-week-in-numbers-dashboard.md).
 // Trailing 10 weeks, Jul 12 - Sep 13, 2026, matching Notion's own L10W window.
-const mtFreq123L10 = [28,30,31,32,36,38,36,38,37,37];
+const mtFreq123L10 = [30,31,32,36,38,36,38,37,37,34];
 const mtFreq123L10Avg = Math.round(mtFreq123L10.reduce((a,b) => a+b, 0) / mtFreq123L10.length);
 
 // Health goals per Drew: green = meets/exceeds goal, red = well short,
