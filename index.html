@@ -96,7 +96,7 @@ footer.page code{font-family:var(--font-mono);background:var(--surface-2);paddin
       <span class="health-dot" id="visionHealthDot"></span>
     </div>
     <p class="hero-value">87<span class="hero-unit">%</span></p>
-    <p class="hero-sub">YTD average toward the 90% goal &mdash; 2 Leader Lab sessions logged this year (16 of 20 in August, 17 of 18 in May)</p>
+    <p class="hero-sub">YTD average toward the 90% goal &mdash; 2 Leader Lab sessions logged this year (17 of 18 in May, 16 of 20 in August)</p>
   </div>
 </div>
 
@@ -136,7 +136,7 @@ footer.page code{font-family:var(--font-mono);background:var(--surface-2);paddin
 </section>
 
 <footer class="page">
-  Built from a one-time pull of the Notion workspace on 2026-09-06, refreshed with each week's numbers since (most recently 2026-09-29). Refresh this page after each week's data lands &mdash; ask Claude to re-pull <code>Sunday Weekly DATA</code> and <code>HG Attendance &ndash; by Person DATA</code> and republish. Life Group involvement is a semester total in Notion, not a weekly count, so it updates once per term rather than every week.
+  Built from a one-time pull of the Notion workspace on 2026-09-06, refreshed with each week's numbers since (most recently 2026-10-01). Refresh this page after each week's data lands &mdash; ask Claude to re-pull <code>Sunday Weekly DATA</code> and <code>HG Attendance &ndash; by Person DATA</code> and republish. Life Group involvement is a semester total in Notion, not a weekly count, so it updates once per term rather than every week.
 </footer>
 </div>
 
@@ -198,7 +198,7 @@ const hgRaw = [
 ["2026-04-19",35],["2026-04-26",20],["2026-05-03",37],["2026-05-10",35],["2026-06-14",12],
 ["2026-07-12",32],["2026-07-19",21],["2026-07-26",21],["2026-08-02",20],["2026-08-09",15],
 ["2026-08-16",15],["2026-08-23",20],["2026-08-30",18],
-["2026-09-13",34],["2026-09-20",29]
+["2026-09-13",34],["2026-09-20",29],["2026-09-27",18]
 ];
 
 // MT Freq 1-3 sum (people who served 1, 2, or 3 times in the trailing 5
@@ -261,7 +261,7 @@ const servingPct = Math.round((latestMT / CORE_ADULTS) * 100);
 // don't resolve over the API. See wiki/projects/this-week-in-numbers-dashboard.md.
 const worshipL10 = worship.slice(-10).map(p => p[1]);
 const worshipL10Avg = Math.round(worshipL10.reduce((a,b) => a+b, 0) / worshipL10.length);
-const givingL10 = [2764.32,3489.88,5394.07,2031.7,8698.53,2051.02,4282.82,1071.44,5207.04,1475.75];
+const givingL10 = [2764.32,3489.88,5394.07,2031.7,8698.53,2051.02,4282.82,1071.44,5207.04,4156.05];
 const givingL10Avg = Math.round(givingL10.reduce((a,b) => a+b, 0) / givingL10.length);
 const hgL10 = hgRaw.filter(p => p[0] >= worship[worship.length-10][0]).map(p => p[1]);
 const hgL10Avg = hgL10.reduce((a,b) => a+b, 0) / hgL10.length;
