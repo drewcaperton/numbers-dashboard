@@ -95,8 +95,8 @@ footer.page code{font-family:var(--font-mono);background:var(--surface-2);paddin
       <p class="hero-label">2026 Vision &middot; Leader Lab Attendance</p>
       <span class="health-dot" id="visionHealthDot"></span>
     </div>
-    <p class="hero-value">87<span class="hero-unit">%</span></p>
-    <p class="hero-sub">YTD average toward the 90% goal &mdash; 2 Leader Lab sessions logged this year (17 of 18 in May, 16 of 20 in August)</p>
+    <p class="hero-value">86<span class="hero-unit">%</span></p>
+    <p class="hero-sub">YTD average toward the 90% goal &mdash; 3 Leader Lab sessions logged this year (17 of 18 in May, 16 of 20 in August, 16 of 19 in November)</p>
   </div>
 </div>
 
@@ -346,7 +346,7 @@ document.getElementById('kpiGridP1').innerHTML = kpis.filter(k => k.priority ===
 document.getElementById('kpiGridP2').innerHTML = kpis.filter(k => k.priority === 2).map(kpiCard).join('');
 document.getElementById('kpiGridP3').innerHTML = kpis.filter(k => k.priority === 3).map(kpiCard).join('');
 
-const visionHealth = ratioHealth(87, 90);
+const visionHealth = ratioHealth(86, 90);
 const visionDot = document.getElementById('visionHealthDot');
 visionDot.className = 'health-dot ' + visionHealth;
 visionDot.title = HEALTH_LABEL[visionHealth];
