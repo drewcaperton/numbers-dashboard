@@ -119,7 +119,7 @@ footer.page code{font-family:var(--font-mono);background:var(--surface-2);paddin
 
 <section class="chart-block">
   <div class="chart-head"><h2>Worship attendance</h2><span class="range" id="worshipRange"></span></div>
-  <p class="chart-note">Sunday morning headcount, CHFS People &rarr; Sunday Weekly DATA.</p>
+  <p class="chart-note">Sunday morning headcount, overlaid by 12-month span (Nov 20 – Nov 19). The current year is brightest; earlier years fade back.</p>
   <div class="canvas-wrap"><canvas id="worshipChart" role="img" aria-label="Line chart of weekly worship attendance over the trailing year"></canvas></div>
 </section>
 
@@ -244,9 +244,9 @@ function rangeLabel(arr){
 }
 
 document.getElementById('latestWeekLabel').textContent = fmtWeek(worship[worship.length-1][0]);
-document.getElementById('worshipRange').textContent = rangeLabel(worship);
-document.getElementById('hgRange').textContent = rangeLabel(hgRaw);
-document.getElementById('mtRange').textContent = rangeLabel(mt);
+document.getElementById('worshipRange').textContent = 'Nov 20, 2025 – Nov 19, 2026 vs. prior years';
+document.getElementById('hgRange').textContent = 'Nov 20, 2025 – Nov 19, 2026 vs. prior years';
+document.getElementById('mtRange').textContent = 'Nov 20, 2025 – Nov 19, 2026 vs. prior years';
 
 const latestWorship = worship[worship.length-1][1];
 const prevWorship = worship[worship.length-2][1];
@@ -409,26 +409,70 @@ function trendDataset(pairs){
   };
 }
 
-new Chart(document.getElementById('worshipChart'), {
-  type:'line',
-  data: (() => { const d = lineDataset(worship, CORNERSTONE); d.datasets.push(trendDataset(worship)); return d; })(),
-  options: baseOptions()
-});
+function overlayChart(canvasId, pairs, color, gaps){
+  // Overlay of 12-month spans, each ending Nov 19 (newest span brightest)
+  const END = new Date(Date.UTC(2026,10,19));
+  const DAY = 86400000;
+  const spans = [];
+  for (let k=0;k<3;k++){
+    const e = new Date(Date.UTC(2026-k,10,19));
+    const st = new Date(Date.UTC(2025-k,10,20));
+    spans.push({k, start:st, end:e});
+  }
+  for (let i=spans.length-1;i>=0;i--){ const sp=spans[i]; if(!pairs.some(([ds,v])=>{const d=new Date(ds+'T00:00:00Z');return v!=null&&d>=sp.start&&d<=sp.end;})) spans.splice(i,1); }
+  const SLOTS = 53;
+  const labelDates = [];
+  for (let i=0;i<SLOTS;i++) labelDates.push(new Date(spans[0].start.getTime()+i*7*DAY));
+  const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const lbl = d => mon[d.getUTCMonth()]+' '+d.getUTCDate();
+  const alphas = [1,0.55,0.3];
+  const widths = [3,1.75,1.5];
+  const names = spans.map(s => mon[s.start.getUTCMonth()]+' '+s.start.getUTCDate()+', '+s.start.getUTCFullYear()+' – '+mon[s.end.getUTCMonth()]+' '+s.end.getUTCDate()+', '+s.end.getUTCFullYear());
+  const rgb = (color.replace('#','').match(/.{2}/g)||['00','25','3b']).map(h=>parseInt(h,16));
+  const datasets = spans.map((sp,i)=>{
+    const data = new Array(SLOTS).fill(null);
+    const dates = new Array(SLOTS).fill(null);
+    pairs.forEach(([ds,v])=>{
+      const d = new Date(ds+'T00:00:00Z');
+      if (d<sp.start || d>sp.end || v==null) return;
+      const idx = Math.min(SLOTS-1, Math.round((d-sp.start)/(7*DAY)));
+      data[idx]=v; dates[idx]=ds;
+    });
+    const c = 'rgba('+rgb.join(',')+','+alphas[i]+')';
+    return {label:names[i], data, _dates:dates, borderColor:c, backgroundColor:i===0?'rgba('+rgb.join(',')+',0.08)':'transparent',
+      borderWidth:widths[i], pointRadius:0, pointHoverRadius:i===0?5:3, pointHoverBackgroundColor:c,
+      fill:i===0, tension:0.25, spanGaps:gaps, order:spans.length-i};
+  });
+  const NS = spans.length;
+  spans.forEach((sp,i)=>{
+    const tr = trendlinePoints(datasets[i].data.map((v,j)=>[j,v]));
+    datasets.push({label:'Trend', _trend:true, data:tr, borderColor:'rgba(0,37,59,0.3)', borderWidth:1.5, borderDash:[5,4], pointRadius:0, pointHoverRadius:0, fill:false, tension:0, spanGaps:true, order:0, hidden:i!==0});
+  });
+  // Only the most recent VISIBLE span shows its trendline
+  const syncTrends = (chart)=>{
+    let first = -1;
+    for (let i=0;i<NS;i++){ if (chart.isDatasetVisible(i)) { first=i; break; } }
+    for (let i=0;i<NS;i++) chart.setDatasetVisibility(NS+i, i===first);
+  };
+  const o = baseOptions();
+  o.plugins.legend = {display:true, position:'bottom', onClick:(e,item,legend)=>{ const c=legend.chart; c.setDatasetVisibility(item.datasetIndex, !c.isDatasetVisible(item.datasetIndex)); syncTrends(c); c.update(); }, labels:{filter:(it)=>it.text!=='Trend', usePointStyle:true, boxWidth:8, color:tok('--text-secondary'), font:{size:11,family:'Figtree'}}};
+  o.plugins.tooltip.itemSort = (a,b)=> a.datasetIndex - b.datasetIndex; // newest span first, trendline last
+  o.plugins.tooltip.callbacks = {
+    title: (items)=> 'Week of ' + lbl(labelDates[items[0].dataIndex]),
+    label: (it)=> { if (it.dataset._trend) return 'Trend: '+Math.round(it.parsed.y); const ds=it.dataset._dates[it.dataIndex]; return it.dataset.label.split(' – ')[1].slice(-4)+': '+it.parsed.y+(ds?' ('+fmtWeek(ds)+')':''); }
+  };
+  o.interaction = {mode:'index', intersect:false};
+  o.scales.x.ticks.callback = function(v){ return lbl(labelDates[v]); };
+  new Chart(document.getElementById(canvasId), {type:'line', data:{labels:labelDates.map(lbl), datasets}, options:o});
+}
+overlayChart('worshipChart', worship, CORNERSTONE, true);
 
 const hgWeeks = worship.map(p=>p[0]);
 const hgMap = Object.fromEntries(hgRaw);
 const hgFilled = hgWeeks.map(w => [w, Object.prototype.hasOwnProperty.call(hgMap,w) ? hgMap[w] : null]);
-new Chart(document.getElementById('hgChart'), {
-  type:'line',
-  data: (() => { const d = lineDataset(hgFilled, CEDAR); d.datasets.push(trendDataset(hgFilled)); return d; })(),
-  options: baseOptions()
-});
+overlayChart('hgChart', hgFilled, CEDAR, false);
 
-new Chart(document.getElementById('mtChart'), {
-  type:'line',
-  data: (() => { const d = lineDataset(mt, VINE); d.datasets.push(trendDataset(mt)); return d; })(),
-  options: baseOptions()
-});
+overlayChart('mtChart', mt, VINE, false);
 </script>
 
 </body></html>
