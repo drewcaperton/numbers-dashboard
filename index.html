@@ -119,7 +119,7 @@ footer.page code{font-family:var(--font-mono);background:var(--surface-2);paddin
 
 <section class="chart-block">
   <div class="chart-head"><h2>Worship attendance</h2><span class="range" id="worshipRange"></span></div>
-  <p class="chart-note">Sunday morning headcount, overlaid by 12-month span (Nov 20 – Nov 19). The current year is brightest; earlier years fade back.</p>
+  <p class="chart-note">Sunday morning headcount, overlaid by 12-month span (<span id="spanLabel"></span>). The current year is brightest; earlier years fade back.</p>
   <div class="canvas-wrap"><canvas id="worshipChart" role="img" aria-label="Line chart of weekly worship attendance over the trailing year"></canvas></div>
 </section>
 
@@ -244,9 +244,13 @@ function rangeLabel(arr){
 }
 
 document.getElementById('latestWeekLabel').textContent = fmtWeek(worship[worship.length-1][0]);
-document.getElementById('worshipRange').textContent = 'Nov 20, 2025 – Nov 19, 2026 vs. prior years';
-document.getElementById('hgRange').textContent = 'Nov 20, 2025 – Nov 19, 2026 vs. prior years';
-document.getElementById('mtRange').textContent = 'Nov 20, 2025 – Nov 19, 2026 vs. prior years';
+// Chart window always ends on the most recent Sunday in the data and spans the 12 months before it.
+const ANCHOR = new Date(worship[worship.length-1][0]+'T00:00:00Z');
+const spanStart = new Date(Date.UTC(ANCHOR.getUTCFullYear()-1, ANCHOR.getUTCMonth(), ANCHOR.getUTCDate()+1));
+const fmtUTC = d => d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
+const spanText = fmtUTC(spanStart) + ' – ' + fmtUTC(ANCHOR);
+['worshipRange','hgRange','mtRange'].forEach(id => { document.getElementById(id).textContent = spanText + ' vs. prior years'; });
+document.getElementById('spanLabel').textContent = fmtUTC(spanStart).replace(/, \d{4}$/,'') + ' – ' + fmtUTC(ANCHOR).replace(/, \d{4}$/,'');
 
 const latestWorship = worship[worship.length-1][1];
 const prevWorship = worship[worship.length-2][1];
@@ -410,13 +414,12 @@ function trendDataset(pairs){
 }
 
 function overlayChart(canvasId, pairs, color, gaps){
-  // Overlay of 12-month spans, each ending Nov 19 (newest span brightest)
-  const END = new Date(Date.UTC(2026,10,19));
+  // Overlay of 12-month spans, each ending on the latest Sunday's month/day (newest span brightest)
   const DAY = 86400000;
   const spans = [];
   for (let k=0;k<3;k++){
-    const e = new Date(Date.UTC(2026-k,10,19));
-    const st = new Date(Date.UTC(2025-k,10,20));
+    const e = new Date(Date.UTC(ANCHOR.getUTCFullYear()-k, ANCHOR.getUTCMonth(), ANCHOR.getUTCDate()));
+    const st = new Date(Date.UTC(ANCHOR.getUTCFullYear()-k-1, ANCHOR.getUTCMonth(), ANCHOR.getUTCDate()+1));
     spans.push({k, start:st, end:e});
   }
   for (let i=spans.length-1;i>=0;i--){ const sp=spans[i]; if(!pairs.some(([ds,v])=>{const d=new Date(ds+'T00:00:00Z');return v!=null&&d>=sp.start&&d<=sp.end;})) spans.splice(i,1); }
