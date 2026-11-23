@@ -246,7 +246,7 @@ function rangeLabel(arr){
 document.getElementById('latestWeekLabel').textContent = fmtWeek(worship[worship.length-1][0]);
 // Chart window always ends on the most recent Sunday in the data and spans the 12 months before it.
 const ANCHOR = new Date(worship[worship.length-1][0]+'T00:00:00Z');
-const spanStart = new Date(Date.UTC(ANCHOR.getUTCFullYear()-1, ANCHOR.getUTCMonth(), ANCHOR.getUTCDate()+1));
+const spanStart = new Date(ANCHOR.getTime() - 52*7*86400000);
 const fmtUTC = d => d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
 const spanText = fmtUTC(spanStart) + ' – ' + fmtUTC(ANCHOR);
 ['worshipRange','hgRange','mtRange'].forEach(id => { document.getElementById(id).textContent = spanText + ' vs. prior years'; });
@@ -418,8 +418,11 @@ function overlayChart(canvasId, pairs, color, gaps){
   const DAY = 86400000;
   const spans = [];
   for (let k=0;k<3;k++){
-    const e = new Date(Date.UTC(ANCHOR.getUTCFullYear()-k, ANCHOR.getUTCMonth(), ANCHOR.getUTCDate()));
-    const st = new Date(Date.UTC(ANCHOR.getUTCFullYear()-k-1, ANCHOR.getUTCMonth(), ANCHOR.getUTCDate()+1));
+    // End each span on the Sunday nearest the same calendar date k years back, so week N lines up with week N of every other year.
+    const raw = new Date(Date.UTC(ANCHOR.getUTCFullYear()-k, ANCHOR.getUTCMonth(), ANCHOR.getUTCDate()));
+    const dow = raw.getUTCDay();
+    const e = new Date(raw.getTime() + (dow<=3 ? -dow : 7-dow)*DAY);
+    const st = new Date(e.getTime() - 52*7*DAY);
     spans.push({k, start:st, end:e});
   }
   for (let i=spans.length-1;i>=0;i--){ const sp=spans[i]; if(!pairs.some(([ds,v])=>{const d=new Date(ds+'T00:00:00Z');return v!=null&&d>=sp.start&&d<=sp.end;})) spans.splice(i,1); }
